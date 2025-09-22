@@ -1,0 +1,114 @@
+import React from "react";
+import { Box, Typography, Grid, Card, CardContent, Avatar } from "@mui/material";
+
+// ==== DATA (Put your team images in /public/images/ and update img paths) ====
+const team = {
+  leadership: [
+    { img: "/images/atul.jpg", name: "Mr. Atul Khandagale", role: "Principal" },
+    { img: "/images/thaddeus.jpg", name: "Mr. Thaddeus Kohli", role: "School Administrator" },
+    { img: "/images/kenneth.jpg", name: "Fr. Dr. Kenneth Misquitt S.J.", role: "Managing Director" },
+  ],
+  facilitators: [
+    { img: "/images/pooja.jpg", name: "Mrs. Pooja Selvan", role: "Facilitator Secondary" },
+    { img: "/images/belvinda.jpg", name: "Mrs. Belvinda Pereira", role: "Facilitator Primary" },
+    { img: "/images/dhanashree.jpg", name: "Mrs. Dhanashree Sathe", role: "Senior Admin" },
+    { img: "/images/skylet.jpg", name: "Mrs. Skylet Fernandes", role: "Senior Accountant" },
+  ],
+  prePrimary: [
+    { img: "/images/loretta.jpg", name: "Ms. Loretta Mendonsa", role: "Teacher (M.Com, B.Ed)" },
+    { img: "/images/sarah.jpg", name: "Mrs. Sarah Patrick Mariadas", role: "Teacher (MA, B.Ed)" },
+    { img: "/images/deepali.jpg", name: "Mrs. Deepali Jitendra Lodha", role: "Teacher (B.Com, TTC)" },
+    { img: "/images/arokiamary.jpg", name: "Mrs. Arokiamary Samson Naidu", role: "Teacher (BA, B.Ed)" },
+    { img: "/images/sonali.jpg", name: "Mrs. Sonali Balasaheb Chokhar", role: "Teacher (MA, B.Ed)" },
+    { img: "/images/anaida.jpg", name: "Ms. Anaida Sunil Kamble", role: "Teacher (BA, D.Ed)" },
+  ],
+};
+
+// ==== COMPONENT ====
+export default function MeetTheTeam() {
+  return (
+    <Box sx={{ p: 4 }}>
+      <Typography variant="h4" fontWeight="bold" textAlign="center" gutterBottom>
+        Meet Our Team
+      </Typography>
+
+      {/* Leadership */}
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
+          Leadership
+        </Typography>
+        <Grid container spacing={3}>
+          {team.leadership.map((member, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Card sx={{ borderRadius: 3, boxShadow: 3, textAlign: "center", p: 2 }}>
+                <Avatar
+                  src={member.img}
+                  alt={member.name}
+                  sx={{ width: 80, height: 80, mx: "auto", mb: 2 }}
+                />
+                <CardContent>
+                  <Typography variant="h6">{member.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {member.role}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      {/* Facilitators */}
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
+          Facilitators
+        </Typography>
+        <Grid container spacing={3}>
+          {team.facilitators.map((member, index) => (
+            <Grid item xs={12} sm={6} md={3} key={index}>
+              <Card sx={{ borderRadius: 3, boxShadow: 3, textAlign: "center", p: 2 }}>
+                <Avatar
+                  src={member.img}
+                  alt={member.name}
+                  sx={{ width: 80, height: 80, mx: "auto", mb: 2 }}
+                />
+                <CardContent>
+                  <Typography variant="h6">{member.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {member.role}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      {/* Pre-Primary Section */}
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
+          Pre-Primary Section Staff
+        </Typography>
+        <Grid container spacing={3}>
+          {team.prePrimary.map((member, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Card sx={{ borderRadius: 3, boxShadow: 3, textAlign: "center", p: 2 }}>
+                <Avatar
+                  src={member.img}
+                  alt={member.name}
+                  sx={{ width: 80, height: 80, mx: "auto", mb: 2 }}
+                />
+                <CardContent>
+                  <Typography variant="h6">{member.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {member.role}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    </Box>
+  );
+}
