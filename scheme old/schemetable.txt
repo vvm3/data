@@ -1,0 +1,180 @@
+//schemetable
+
+"use client";
+// utils
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { Edit2Icon, Trash2Icon } from "lucide-react";
+
+// ui components
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import DeleteDialog from "@/components/custom/delete-dialog";
+import DefaultTableRow from "@/components/common/table-rows";
+import CircleIconWrapper from "@/components/custom/CircleIconWrapper";
+import { tableStyle } from "@/config/styles/colors";
+import { CreateSchemeForm } from "@/components/academics/tabs/schemeAndMarks/tabs/Scheme/CreateScheme";
+
+//hooks
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { useGenericStateUpdater } from "@/hooks/common/useGenericStateUpdate";
+
+// api functions
+import { deleteScheme, fetchSchemeData } from "@/app/actions/masters/academic";
+
+// interfaces
+import { InitialSchemeState, IScheme, ISchemeState, SchemeApiResponse } from "@/components/academics/tabs/schemeAndMarks/SchemeAndMarks";
+import { messages } from "@/config/messages";
+
+
+interface SchemeTableProps {
+    rows: IScheme[];
+    refetch: () => void;
+    updateState: (s: any) => void; // pass from parent
+    state?: any; // parent state
+}
+
+
+export const SchemeTable = forwardRef((props, ref) => {
+
+    const [loading, setLoading] = useState(false);
+    const [state, setState] = useState<ISchemeState>(InitialSchemeState);
+    const updateState = useGenericStateUpdater(setState);
+
+    //table headers
+    const headers = ["Scheme Name", "L", "P", "T", "In", "Pj", "Credits", "Total Marks", "Actions"];
+
+    //fetch scheme table data
+    const getSchemeData = async () => {
+        try {
+            updateState({ Loading: true });
+            const response: SchemeApiResponse = await fetchSchemeData();
+            const schemeList = response?.schemes?.data ?? [];
+            updateState({ schemes: schemeList });
+        } catch (error: any) {
+            toast.error(error.message);
+        } finally {
+            updateState({ Loading: false });
+        }
+    };
+
+    useImperativeHandle(ref, () => ({
+        refetch: getSchemeData
+    }));
+
+    //initial fetch
+    useEffect(() => { getSchemeData(); }, []);
+
+    //delete function for handle delete scheme
+    const handleDelete = async () => {
+        if (!state?.CurrentScheme?._id) return;
+        try {
+            setLoading(true);
+            await deleteScheme(state.CurrentScheme._id);
+            toast.success(messages.SchemeAndMarks.deleteSuccess);
+            getSchemeData();
+        } catch (err: any) {
+            toast.error(err.message);
+        } finally {
+            setLoading(false);
+            updateState({ CurrentScheme: undefined, OpenDelete: false });
+        }
+    };
+
+    //scheme data saved in variable
+    const schemeRows = state.schemes;
+
+    return (
+        <div aria-label="Schemes List Page">
+            <Table className="h-[calc(100vh-270px)] border shadow-lg rounded-lg custom-scrollbar">
+                <TableHeader className="sticky top-0 bg-card">
+                    <TableRow className={cn(tableStyle.header)}>
+                        {headers.map((item, id) => (
+                            <TableHead key={id} className="text-center px-6 py-5">
+                                {item}
+                            </TableHead>
+                        ))}
+                    </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                    {schemeRows.map((row) => (
+                        <TableRow key={row._id}>
+                            <TableCell className="text-center text-muted-foreground">{row.Scheme ?? ""}</TableCell>
+
+                            {/* Loop through pedagogy */}
+                            {["Lecture", "Practical", "Tutorial", "Internship", "Project"].map((name) => {
+                                const ped = row.Pedagogy.find((p) => p.Name === name);
+                                return (
+                                    <TableCell key={name} className="text-center text-muted-foreground">
+                                        {ped ? ped.Duration : 0}
+                                    </TableCell>
+                                );
+                            })}
+
+                            <TableCell className="text-center text-muted-foreground">{row.TotalCredits ?? 0}</TableCell>
+                            <TableCell className="text-center text-muted-foreground">{(row.TotalMarks ?? 0).toString()}</TableCell>
+
+                            {/* Actions */}
+                            <TableCell className="flex justify-center gap-2">
+                                <CircleIconWrapper
+                                    toolTipText="Edit Scheme"
+                                    onClick={() => {
+                                        console.log("Table clicked Edit for scheme:", row._id, row.Scheme);
+                                        updateState({ OpenEdit: true, CurrentScheme: row });
+                                    }}
+                                >
+                                    <Edit2Icon size={16} className="text-primary cursor-pointer" />
+                                </CircleIconWrapper>
+
+                                <CircleIconWrapper
+                                    toolTipText="Delete Scheme"
+                                    destructive
+                                    onClick={() => updateState({ OpenDelete: true, CurrentScheme: row })}
+                                >
+                                    <Trash2Icon size={16} className="text-destructive cursor-pointer" />
+                                </CircleIconWrapper>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+
+                    {/* no data found */}
+                    <DefaultTableRow
+                        type="scheme"
+                        colSpan={headers.length}
+                        isEmpty={schemeRows.length === 0}
+                        isLoading={loading}
+                        search=""
+                    />
+                </TableBody>
+            </Table>
+
+            {/* Edit Scheme Form Dialog */}
+            {
+                state.OpenEdit && state.CurrentScheme && (
+                    <CreateSchemeForm
+                        open={state.OpenEdit}
+                        onClose={() => updateState({ OpenEdit: false, CurrentScheme: undefined })}
+                        scheme={state.CurrentScheme}
+                        refetch={getSchemeData}
+                        updateState={updateState}
+                    />
+                )
+            }
+
+
+
+            {/* Delete Dialog */}
+            {
+                state.OpenDelete && (
+                    <DeleteDialog
+                        open={state.OpenDelete}
+                        setOpen={() => updateState({ OpenDelete: false, CurrentScheme: undefined })}
+                        onDelete={handleDelete}
+                        loading={loading}
+                        message={messages.SchemeAndMarks.deleteConfirmation}
+                    />
+                )
+            }
+        </div >
+    );
+})

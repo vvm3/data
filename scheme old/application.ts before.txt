@@ -1,0 +1,50 @@
+//api functions
+
+export async function editScheme(id: string, data: Partial<IScheme>) {
+    try {
+        const res = await fetchWithTimeout(`${BASE_URL}/admission/schemes/${id}`, {
+            method: "PUT",
+            credentials: "include",
+            headers: JSON_HEADERS,
+            body: JSON.stringify(data),
+        });
+
+        if (!res) {
+            throw new Error(messages.server.timeOut);
+        }
+
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            const errorMessage =
+                errorData?.message;
+            throw new Error(errorMessage);
+        }
+
+        // return the parsed JSON response if backend sends it
+        const result: IScheme = await res.json().catch(() => ({} as IScheme));
+        return result;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const createScheme = async (payload: Partial<IScheme>) => {
+    try {
+        const res = await fetch(`${BASE_URL}/admission/schemes`, {
+            method: "POST",
+            headers: JSON_HEADERS,
+            credentials: "include",
+            body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.message);
+        }
+
+        const data = await res.json();
+        return data;
+    } catch (err: any) {
+        throw new Error(err.message);
+    }
+};
