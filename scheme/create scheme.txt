@@ -1,0 +1,373 @@
+//create scheme
+
+
+"use client"
+
+// utils
+import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+
+// React hooks
+import { useEffect, useState } from "react"
+
+// UI components
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Form } from "@/components/ui/form"
+import { Button } from "@/components/ui/button"
+import { useForm, Controller } from "react-hook-form"
+import { InputController } from "@/components/form-controls/input-controller"
+import { customStyle, tableStyle } from "@/config/styles/colors"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
+// API functions
+import { createScheme, editScheme, fetchCreditData } from "@/app/actions/masters/academic"
+import { IScheme } from "@/interface/data-setup/ISchemes"
+import { messages } from "@/config/messages"
+
+// Defines the shape of form data
+interface SchemeFormData {
+  id: string | null
+  schemeName: string
+  credits: string
+  pedagogy: {
+    lecture: number
+    practical: number
+    tutorial: number
+    internship: number
+    project: number
+  }
+  lecture: { internal: number; final: number }
+  practical: { internal: number; final: number }
+  tutorial: { internal: number; final: number }
+  internship: { internal: number; final: number }
+  project: { internal: number; final: number }
+}
+
+// Component Props
+interface CreateSchemeFormProps {
+  open: boolean                    // Whether the dialog is open
+  onClose: () => void              // Callback to close dialog
+  scheme?: IScheme                 // Optional scheme for update mode
+  updateState: (val: any) => void  // Callback to update parent state
+  refetch?: () => void             // Optional callback to refetch data
+}
+
+/**
+ * CreateSchemeForm Component
+ * --------------------------
+ * Modal form to create or edit an academic scheme.
+ * Handles scheme name, pedagogy hours, credits, and marks distribution.
+ * Automatically calculates total credits unless manually overridden.
+ */
+
+export const CreateSchemeForm = ({
+  open,
+  onClose,
+  scheme,
+  refetch,
+  updateState
+}: CreateSchemeFormProps) => {
+
+  // Determine mode create or update
+  const mode = scheme ? "update" : "create"
+
+  // Default Form Values
+  const defaults: SchemeFormData = {
+    id: null,
+    schemeName: "",
+    credits: "0",
+    pedagogy: { lecture: 0, practical: 0, tutorial: 0, internship: 0, project: 0 },
+    lecture: { internal: 0, final: 0 },
+    practical: { internal: 0, final: 0 },
+    tutorial: { internal: 0, final: 0 },
+    internship: { internal: 0, final: 0 },
+    project: { internal: 0, final: 0 },
+  }
+
+  // Form setup
+  const form = useForm<SchemeFormData>({ defaultValues: defaults })
+  const pedagogyValues = form.watch("pedagogy")  // Watch pedagogy for auto-credit calculation
+
+  // Component State
+  const [pedagogyErrors, setPedagogyErrors] = useState<Record<string, string>>({})  // Validation errors
+  const [creditDef, setCreditDef] = useState<Record<string, { duration: number; credits: number }>>({}) // API credit definition
+  const [manualCredit, setManualCredit] = useState(false) // Tracks if user manually changed credits
+
+  // Fetch Credit Definitions from API
+  useEffect(() => {
+    const loadCreditDef = async () => {
+      try {
+        const res = await fetchCreditData()
+        const def: Record<string, { duration: number; credits: number }> = {}
+
+        res.forEach((item: any) => {
+          let key = item.Name.toLowerCase()
+          if (key === "practicals") key = "practical"
+          def[key] = { duration: item.Duration, credits: item.Credits }
+        })
+        setCreditDef(def)
+      } catch (error: any) {
+        console.error("Failed to fetch credit definition", error)
+      }
+    }
+    loadCreditDef()
+  }, [])
+
+  // Load existing scheme into form
+  useEffect(() => {
+    if (!scheme) return
+
+    // Set basic fields
+    form.setValue("id", scheme._id)
+    form.setValue("schemeName", scheme.Scheme)
+    form.setValue("credits", scheme.TotalCredits ?? "0")
+
+    // Map pedagogy hours from scheme
+    const pedagogy = {
+      lecture: scheme.Pedagogy.find(p => p.Name === "Lecture")?.Duration || 0,
+      practical: scheme.Pedagogy.find(p => p.Name === "Practical")?.Duration || 0,
+      tutorial: scheme.Pedagogy.find(p => p.Name === "Tutorial")?.Duration || 0,
+      internship: scheme.Pedagogy.find(p => p.Name === "Internship")?.Duration || 0,
+      project: scheme.Pedagogy.find(p => p.Name === "Project")?.Duration || 0,
+    }
+    form.setValue("pedagogy", pedagogy)
+
+    // Map marks distribution
+    const getMarks = (name: string) => ({
+      internal: Number(scheme.MarksDistribution.find(m => m.Name === name)?.InternalMarks ?? 0),
+      final: Number(scheme.MarksDistribution.find(m => m.Name === name)?.FinalMarks ?? 0),
+    })
+    form.setValue("lecture", getMarks("Lecture"))
+    form.setValue("practical", getMarks("Practical"))
+    form.setValue("tutorial", getMarks("Tutorial"))
+    form.setValue("internship", getMarks("Internship"))
+    form.setValue("project", getMarks("Project"))
+
+    setManualCredit(false) // Reset manual override
+  }, [scheme, form])
+
+  // Credit Calculation Function
+  const calculateCredits = (pedagogy: SchemeFormData["pedagogy"]) => {
+    if (!Object.keys(creditDef).length) return 0
+
+    let total = 0
+    for (const key in pedagogy) {
+      const hours = Number(pedagogy[key as keyof typeof pedagogy] || 0) // Convert input safely
+      const def = creditDef[key]
+      if (def && hours > 0) {
+        const hoursPerCredit = def.duration / def.credits
+        total += hours / hoursPerCredit
+      }
+    }
+    return total
+  }
+
+  // Auto-calculate credits when pedagogy changes (unless manual override)
+  useEffect(() => {
+    if (manualCredit) return
+    if (!Object.keys(creditDef).length) return
+
+    const totalCredits = calculateCredits(pedagogyValues)
+    form.setValue("credits", totalCredits.toFixed(2), {
+      shouldValidate: true,
+      shouldDirty: true,
+    })
+  }, [pedagogyValues, creditDef, form, manualCredit])
+
+  // Pedagogy Change Handler with validation and auto-credit
+  const handlePedagogyChange = (key: keyof SchemeFormData["pedagogy"], val: any) => {
+    // Sanitize input to prevent NaN
+    const numericVal = isNaN(Number(val)) || val === "" ? 0 : Number(val)
+    const marks = form.getValues(key)
+
+    // Validation if hours = 0 but marks exist
+    if (numericVal === 0 && (marks.internal > 0 || marks.final > 0)) {
+      setPedagogyErrors(prev => ({ ...prev, [key]: `Clear marks before setting ${key} hours to 0` }))
+    } else {
+      setPedagogyErrors(prev => {
+        const { [key]: _, ...rest } = prev
+        return rest
+      })
+    }
+
+    // Update pedagogy field
+    form.setValue(`pedagogy.${key}`, numericVal, { shouldValidate: true })
+
+    // Auto-calc credits if manual override not active
+    if (!manualCredit) {
+      const newPedagogy = { ...form.getValues("pedagogy"), [key]: numericVal }
+      const totalCredits = calculateCredits(newPedagogy)
+      form.setValue("credits", totalCredits.toFixed(2), {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+    }
+  }
+
+  // Form Submission
+  const onSubmit = async (formData: SchemeFormData) => {
+    if (!manualCredit) {
+      const totalCredits = calculateCredits(formData.pedagogy)
+      formData.credits = totalCredits.toFixed(2)
+    }
+
+    if (Object.keys(pedagogyErrors).length > 0) {
+      toast.error(messages.SchemeAndMarks.onSubmitError)
+      return
+    }
+
+    try {
+      // Calculate total marks
+      const totalMarks = (["lecture", "practical", "tutorial", "internship", "project"] as const)
+        .reduce((sum, key) =>
+          sum + Number(formData[key].internal || 0) + Number(formData[key].final || 0), 0
+        )
+
+      // Prepare payload
+      const payload: Partial<IScheme> = {
+        Scheme: formData.schemeName,
+        TotalCredits: String(formData.credits),
+        TotalMarks: totalMarks,
+        Pedagogy: Object.keys(formData.pedagogy).map(key => ({
+          Name: key.charAt(0).toUpperCase() + key.slice(1),
+          Duration: Number(formData.pedagogy[key as keyof typeof formData.pedagogy])
+        })),
+        MarksDistribution: (["lecture", "practical", "tutorial", "internship", "project"] as const)
+          .map(key => ({
+            Name: key.charAt(0).toUpperCase() + key.slice(1),
+            InternalMarks: Number(formData[key].internal),
+            FinalMarks: Number(formData[key].final)
+          }))
+      }
+
+      // Call API
+      if (mode === "update" && formData.id) {
+        await editScheme(formData.id, payload)
+        toast.success(messages.SchemeAndMarks.updateSuccess);
+        refetch?.()
+        updateState({ OpenEdit: false, CurrentScheme: undefined });
+      } else {
+        await createScheme(payload)
+        toast.success(messages.SchemeAndMarks.createSuccess);
+        refetch?.()
+        updateState({ OpenCreate: false });
+      }
+      onClose()
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) form.reset(defaults)
+  }, [open, form])
+
+  // Render
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar space-y-3">
+        <DialogHeader>
+          <DialogTitle className="font-normal text-custom">
+            {mode === "create" ? "Create" : "Update"} <span className="text-primary">Scheme</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+
+            {/* Scheme Name Input */}
+            <InputController
+              name="schemeName"
+              label="Scheme Name"
+              className={cn("w-[300px]", customStyle)}
+              maxLength={50}
+              type="text"
+            />
+
+            {/* Pedagogy Table */}
+            <h2>Pedagogy</h2>
+            <Table className="h-fit border rounded-lg custom-scrollbar">
+              <TableHeader className="sticky top-0 bg-card">
+                <TableRow className={cn(tableStyle.header)}>
+                  {["Lecture", "Practical", "Tutorial", "Internship", "Project"].map(cat => (
+                    <TableHead key={cat} className="text-center">{cat}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  {(["lecture", "practical", "tutorial", "internship", "project"] as const).map(key => (
+                    <TableCell key={key} className="text-center px-6 py-5">
+                      <div className="flex flex-col">
+                        <Controller
+                          control={form.control}
+                          name={`pedagogy.${key}`}
+                          render={({ field }) => (
+                            <InputController
+                              {...field}
+                              type="number"
+                              label=""
+                              className={cn("border-none text-center", pedagogyErrors[key] ? "border-red-500" : "")}
+                              onChange={e => handlePedagogyChange(key, e.target.value)}
+                            />
+                          )}
+                        />
+                        {pedagogyErrors[key] && <p className="text-red-500 text-xs mt-1">{pedagogyErrors[key]}</p>}
+                      </div>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableBody>
+            </Table>
+
+            {/* Credits Input */}
+            <div className="flex flex-row items-center gap-5 space-y-1">
+              <label className="text-sm font-medium">Credits</label>
+              <Controller
+                control={form.control}
+                name="credits"
+                render={({ field }) => (
+                  <InputController
+                    {...field}
+                    type="number"
+                    label=""
+                    className="border-none text-center w-[70px]"
+                    onChange={e => {
+                      field.onChange(e)
+                      setManualCredit(true) // Stop auto-calc
+                    }}
+                  />
+                )}
+              />
+            </div>
+
+            {/* Marks Distribution */}
+            <h2>Marks Distribution</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              {["Lecture", "Practical", "Tutorial", "Internship", "Project"].map(category => {
+                type PedagogyKey = keyof SchemeFormData["pedagogy"]
+                const key = category.toLowerCase() as PedagogyKey
+                const isDisabled = pedagogyValues[key] === 0
+
+                return (
+                  <div key={key} className="flex flex-col gap-3 rounded-xl border border-gray-300 p-4">
+                    <h3 className="font-medium text-center">{category}</h3>
+                    <InputController name={`${key}.internal`} label="Internal Marks" type="number" className="w-full" disabled={isDisabled} />
+                    <InputController name={`${key}.final`} label="Final Marks" type="number" className="w-full" disabled={isDisabled} />
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Form Buttons */}
+            <div className="flex justify-between">
+              <Button type="button" variant="outlinePrimary" className="w-[120px]" onClick={onClose}>Cancel</Button>
+              <Button type="submit" className="w-[120px]">{mode === "create" ? "Create" : "Update"}</Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  )
+}
