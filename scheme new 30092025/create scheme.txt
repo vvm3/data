@@ -1,0 +1,325 @@
+"use client"
+
+// utils
+import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+
+// React hooks
+import { useEffect, useState } from "react"
+
+// UI components
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Form } from "@/components/ui/form"
+import { Button } from "@/components/ui/button"
+import { useForm, Controller } from "react-hook-form"
+import { InputController } from "@/components/form-controls/input-controller"
+import { customStyle, tableStyle } from "@/config/styles/colors"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
+//interfaces and types
+import { CreditHours, IScheme, PedagogyMarks } from "@/interface/data-setup/ISchemes"
+import { messages } from "@/config/messages"
+import { DynamicSchemeFormData, schemeFormSchema } from "@/schema/academics/schemes/createScheme"
+
+// API functions
+import { createScheme, editScheme, fetchCreditData } from "@/app/actions/masters/academic"
+
+//zod resolver
+import { zodResolver } from "@hookform/resolvers/zod"
+
+// Component Props
+interface CreateSchemeFormProps {
+  open: boolean
+  onClose: () => void
+  scheme?: IScheme
+  updateState: (val: any) => void
+  refetch?: () => void                         // to reload data after create/update
+}
+
+/**
+ * CreateSchemeForm Component
+ * Form to create or edit an academic scheme.
+ * Handles scheme name, pedagogy hours, credits, and marks distribution.
+ * Automatically calculates total credits unless manually overridden.
+ */
+export const CreateSchemeForm = ({ open, onClose, scheme, refetch, updateState }: CreateSchemeFormProps) => {
+  //mode for create and edit/update
+  const mode = scheme ? "update" : "create"
+
+  // states
+  const [pedagogyKeys, setPedagogyKeys] = useState<string[]>([])
+  const [pedagogyErrors, setPedagogyErrors] = useState<Record<string, string>>({})
+  const [creditDef, setCreditDef] = useState<Record<string, CreditHours>>({})
+  const [manualCredit, setManualCredit] = useState(false)
+
+  // default form values
+  const defaults: DynamicSchemeFormData = {
+    id: null,
+    schemeName: "",
+    credits: "0",
+    pedagogy: {},
+    marks: {}
+  }
+
+  // form setup
+  const form = useForm<DynamicSchemeFormData>({
+    defaultValues: defaults,
+    resolver: zodResolver(schemeFormSchema)
+  });
+
+  //store form value on change in variable
+  const pedagogyValues = form.watch("pedagogy");
+  const marksValues = form.watch("marks");
+
+  // load credit definitions for credit-hours defination before create/edit
+  useEffect(() => {
+    const loadCreditDef = async () => {
+      try {
+        const res = await fetchCreditData();
+        const creditDefData: Record<string, CreditHours> = {};
+        res.forEach((item: any) => {
+          let key = item.Name.toLowerCase();
+          if (key === "practicals") key = "practical"    //this is because, mismatch in backend API
+          creditDefData[key] = { duration: item.Duration, credits: item.Credits };
+        })
+        setCreditDef(creditDefData);
+      } catch (error: any) {
+        toast.error(error.message)
+      }
+    }
+    loadCreditDef();
+  }, [])
+
+  // load existing scheme for edit into form
+  useEffect(() => {
+    if (!scheme) return;
+    const pedagogy: Record<string, number> = {};
+    const marks: Record<string, PedagogyMarks> = {};
+
+    scheme.Pedagogy.forEach(pedagogyItem => {
+      const key = pedagogyItem.Name.toLowerCase();
+      pedagogy[key] = pedagogyItem.Duration;
+      const markData = scheme.MarksDistribution.find(mark => mark.Name.toLowerCase() === key);
+      marks[key] = {
+        internal: Number(markData?.InternalMarks || 0),
+        final: Number(markData?.FinalMarks || 0)
+      }
+    });
+
+    setPedagogyKeys(Object.keys(pedagogy));
+    form.setValue("id", scheme._id);
+    form.setValue("schemeName", scheme.Scheme);
+    form.setValue("credits", scheme.TotalCredits ?? "0");
+    form.setValue("pedagogy", pedagogy);
+    form.setValue("marks", marks);
+
+    setManualCredit(false);
+  }, [scheme, form])
+
+  // for new scheme, fetch pedagogy from creditDef
+  useEffect(() => {
+    if (!scheme && Object.keys(creditDef).length) {
+      const keys = Object.keys(creditDef);
+      setPedagogyKeys(keys);
+      const pedagogy: Record<string, number> = {};
+      const marks: Record<string, PedagogyMarks> = {};
+      keys.forEach(k => {
+        pedagogy[k] = 0,
+          marks[k] = { internal: 0, final: 0 }
+      });
+      form.setValue("pedagogy", pedagogy);
+      form.setValue("marks", marks);
+    }
+  }, [scheme, creditDef, form]);
+
+  // auto calculate credit
+  const calculateCredits = (ped: Record<string, number>) => {
+    if (!Object.keys(creditDef).length) return 0;
+    let total = 0;
+    for (const key in ped) {
+      const hours = Number(ped[key] || 0);
+      const def = creditDef[key];
+      if (def && hours > 0) total += hours / (def.duration / def.credits);
+    }
+    return total;
+  }
+
+  //auto credit putting in input
+  useEffect(() => {
+    if (manualCredit) return;
+    if (!Object.keys(creditDef).length) return;
+    const totalCredits = calculateCredits(pedagogyValues);
+    form.setValue("credits", totalCredits.toFixed(2), { shouldValidate: true, shouldDirty: true });
+  }, [pedagogyValues, creditDef, form, manualCredit]);
+
+
+  //marks value disable based on pedagogy hours input
+  const handlePedagogyChange = (key: string, val: any) => {
+    const numericVal = isNaN(Number(val)) || val === "" ? 0 : Number(val);
+    const marks = marksValues[key];
+
+    //validation error
+    if (numericVal === 0 && (marks?.internal > 0 || marks?.final > 0)) {
+      setPedagogyErrors({ ...pedagogyErrors, [key]: `Clear marks before setting ${key} hours to 0` });
+    } else {
+      const newErrors = { ...pedagogyErrors };
+      delete newErrors[key];
+      setPedagogyErrors(newErrors);
+    }
+    form.setValue(`pedagogy.${key}`, numericVal, { shouldValidate: true });
+
+    //auto credit putting in input
+    if (!manualCredit) {
+      const newPed = { ...form.getValues("pedagogy"), [key]: numericVal };
+      const totalCredits = calculateCredits(newPed);
+      form.setValue("credits", totalCredits.toFixed(2), { shouldValidate: true, shouldDirty: true });
+    }
+  }
+
+  // submit
+  const onSubmit = async (data: DynamicSchemeFormData) => {
+    if (!manualCredit) {
+      const totalCredits = calculateCredits(data.pedagogy);
+      data.credits = totalCredits.toFixed(2);
+    }
+
+    if (Object.keys(pedagogyErrors).length > 0) {
+      toast.error(messages.SchemeAndMarks.onSubmitError);
+      return;
+    }
+
+    try {
+      //tottal mark calculation
+      const totalMarks = Object.values(data.marks).reduce((sum, mark) => sum + Number(mark.internal) + Number(mark.final), 0);
+
+      const payload: Partial<IScheme> = {
+        Scheme: data.schemeName,
+        TotalCredits: data.credits,
+        TotalMarks: totalMarks,
+        Pedagogy: Object.entries(data.pedagogy).map(([name, dur]) => ({
+          Name: name.charAt(0).toUpperCase() + name.slice(1),
+          Duration: dur
+        })),
+        MarksDistribution: Object.entries(data.marks).map(([name, mark]) => ({
+          Name: name.charAt(0).toUpperCase() + name.slice(1),
+          InternalMarks: mark.internal,
+          FinalMarks: mark.final
+        }))
+      }
+
+      if (mode === "update" && data.id) {
+        await editScheme(data.id, payload);
+        toast.success(messages.SchemeAndMarks.updateSuccess);
+        refetch?.();
+        updateState({ OpenEdit: false, CurrentScheme: undefined });
+      } else {
+        await createScheme(payload);
+        toast.success(messages.SchemeAndMarks.createSuccess);
+        refetch?.();
+        updateState({ OpenCreate: false });
+      }
+      onClose();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  }
+
+  //form open/close
+  useEffect(() => {
+    if (!open) form.reset(defaults);
+  }, [open, form])
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar space-y-3">
+        <DialogHeader>
+          <DialogTitle className="font-normal text-custom">
+            {mode === "create" ? "Create" : "Update"} <span className="text-primary">Scheme</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <InputController name="schemeName" label="Scheme Name" className={cn("w-[300px]", customStyle)} maxLength={50} type="text" />
+
+            <h2>Pedagogy</h2>
+            <Table className="h-fit border rounded-lg custom-scrollbar">
+              <TableHeader className="sticky top-0 bg-card">
+                <TableRow className={cn(tableStyle.header)}>
+                  {pedagogyKeys.map(cat => <TableHead key={cat} className="text-center">{cat.charAt(0).toUpperCase() + cat.slice(1)}</TableHead>)}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  {pedagogyKeys.map(key => (
+                    <TableCell key={key} className="text-center px-6 py-5">
+                      <div className="flex flex-col">
+                        <Controller
+                          control={form.control}
+                          name={`pedagogy.${key}`}
+                          render={({ field }) => (
+                            <InputController
+                              {...field}
+                              type="number"
+                              label=""
+                              className={cn("border-none text-center", pedagogyErrors[key] ? "border-red-500" : "")}
+                              onChange={e => handlePedagogyChange(key, e.target.value)}
+                            />
+                          )}
+                        />
+                        {pedagogyErrors[key] && <p className="text-red-500 text-xs mt-1">{pedagogyErrors[key]}</p>}
+                      </div>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableBody>
+            </Table>
+
+            <div className="flex flex-row items-center gap-5 space-y-1">
+              <label className="text-sm font-medium">Credits</label>
+              <Controller
+                control={form.control}
+                name="credits"
+                render={({ field }) => (
+                  <InputController
+                    {...field}
+                    type="number"
+                    label=""
+                    className="border-none text-center w-[70px]"
+                    onChange={e => { field.onChange(e); setManualCredit(true) }}
+                  />
+                )}
+              />
+            </div>
+
+            <h2>Marks Distribution</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              {pedagogyKeys.map(key => {
+                const isDisabled = pedagogyValues[key] === 0
+                return (
+                  <div key={key} className="flex flex-col gap-3 rounded-xl border border-gray-300 p-4">
+                    <h3 className="font-medium text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h3>
+                    <Controller
+                      name={`marks.${key}.internal`}
+                      control={form.control}
+                      render={({ field }) => <InputController {...field} label="Internal Marks" type="number" className="w-full" disabled={isDisabled} />}
+                    />
+                    <Controller
+                      name={`marks.${key}.final`}
+                      control={form.control}
+                      render={({ field }) => <InputController {...field} label="Final Marks" type="number" className="w-full" disabled={isDisabled} />}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex justify-between">
+              <Button type="button" variant="outlinePrimary" className="w-[120px]" onClick={onClose}>Cancel</Button>
+              <Button type="submit" className="w-[120px]">{mode === "create" ? "Create" : "Update"}</Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  )
+}

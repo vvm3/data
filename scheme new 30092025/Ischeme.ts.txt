@@ -1,0 +1,29 @@
+//interface for pedagogy in scheme
+export interface IPedagogy { Name: string; Duration: number; }
+
+//interface for marks distribution in scheme 
+export interface IMarksDistribution { Name: string; InternalMarks: Number; FinalMarks: Number; }
+
+//interface for scheme
+export interface IScheme {
+    _id: string;
+    Deleted: boolean;
+    Scheme: string;
+    Pedagogy: IPedagogy[];
+    TotalCredits: string;
+    TotalMarks: number;
+    MarksDistribution: IMarksDistribution[];
+}
+
+// Interface for a single item in data[]
+export interface ICreditDefination {
+    _id: string;
+    Name: string;
+    Duration: number;
+    Credits: number;
+    AcademicYear?: string;
+}
+
+//types
+export type PedagogyMarks = { internal: number; final: number }
+export type CreditHours =  { duration: number; credits: number }
