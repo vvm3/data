@@ -1,0 +1,497 @@
+Vineet’s Daily Task Performance Record
+07-07-2025 to 07-08-2025  	
+
+**already sent all the tasks up to 06-07-2025
+
+07-07-2025
+Todays' Update:
+- MIBM add all social media links at all the places required - done
+- MIBM new requirement - in progress
+
+
+08-07-2025
+Today's Update:
+- MIBM admissionModel new requirement - done
+- Stella maris school pSTUDENTBASICDETAILS page design issue - done
+- button design issues on both pages - done
+- Mobile numbers not come issue -  in progress
+
+
+09-07-2025
+Today's Update:
+1) Stella maris adjust the alignment of table on the online admission listing page - done
+2) remove the duplicate search textbox that appears twice - done
+3) alignment of 'confirmed admission' text issue - done
+4) scrolling issue on same page- done
+5) search button ui issue - done
+6) TopperList page button isse - done
+7) New Admission tab form issue - in progress
+9) admission form issue - done
+10) MIBM website new requirements - in progress
+
+
+**
+10-07-2025
+Today's Update:
+- MIBM website all remaining pdf uploads - done
+- remove popup from website as per requirement - done
+- Stella Maris New Admission tab form - done
+- Employee Setting page issue - done
+
+
+11-07-2025
+Today's Update:
+- MIBM Img carousel new requirement changes - in progress
+- footer perfectly alignment on website - done
+- released MIBM website with all updates
+
+
+12-07-2025
+Today's Update:
+- MIBM website img carousel new design changes - done
+- St. Ursula ERP Student Basic Details page issue - done
+
+
+14-07-2025
+Today's Update:
+- MIBM changes in desk box of all authorities new requirement - in progress
+- St. Ursula employee profile time table - Implemented dynamic logic in backend - done
+
+
+15-07-2025
+Today's Update:
+1) MIBM website desk box new design requirements - done
+2) Stella Maris admission info alignment issue - done
+3) St. Xavier's website added new Mandatory Disclosure document and released
+4) MIBM website icon shift new design requirements - in progress 
+
+
+16-07-2025
+Today's Update:
+- MIBM website new requirement of icon up on navbar - done & released with all updates
+- St. Ursula topper list page button design issue - done
+- bulk deactivate page UI issue - done
+
+
+17-07-2025
+Today's Update:
+1) St. Ursula online admission page issues - done
+2) Stella Maris fee collection student page both issues - done
+3) MIBS website admission button link updates - done
+4) KBajaj website new home page notice - added
+
+
+18-07-2025
+Today's Update:
+1) MIBS activation of footer links - done
+2) email changes as per new requirement - done
+3) Student tab - new MCA curriculum added and all updates till now released
+
+
+21-07-2025
+Today's Update:
+- MIBS BCA new page and tab created and released 
+- MBA new tab page - in progress
+- MIBM remaining pdf added and released 
+
+
+22-07-2025
+Today's Update:
+1) MIBS MBA page new updates - done
+2) New design of home page MCA box - in progress 
+3) MIBM pdf added and released
+4) Kbajaj ERP employee setting alignment issue - done
+
+
+24-07-2025
+Today's Update:
+- MIBS home page MCA box new design- done
+- BCA and MBA box new design - in progress
+- MIBM new admission ad - done
+- Kbajaj ERP admission page - done
+
+
+25-07-2025
+Today's Update:
+1) St.Xavier's Website modify mandatory disclosure  - done
+2) Demo College Email and SMS template button issue - done
+3) Template Master button issue - done
+4) Approve Scholarship page issue - done
+5) Document upload page issue - done 
+
+
+26-07-2025
+Today's Update:
+1) MIBS home page MBA course box new design - done 
+2) create new Fee Structure page and its new tab option - done
+3) create new Document page and its new tab option - done
+4) MCOPT website new spotlight brochure - done 
+5) MIBM website MBA updates - done
+
+
+28-07-2025
+Today's Update:
+1) MIBS Vision in home page as per new design - done
+2) BCA course box new design - in progress
+3) Useful links updates as per requirement - done
+4) Demo College student feedback report page issue - done
+
+
+29-07-2025
+Today's Update:
+- MIBS website Placement boxes auto scrolling new requirement - in progress
+- St. Xavier's Pune website mandatory disclosure updates - done
+
+
+30-07-2025
+Today's Update:
+- MIBS website Placement boxes new requirement - in progress
+- new UG programs BCA course - done
+- St. Xavier's website sanitary mandatory disclosure updates - done
+
+
+01-08-2025
+Today's Update:
+- MIBS website new requirement of auto scrolling placement box - done
+- all three new courses program box new design - done
+
+
+04-08-2025
+Today's Update:
+- MIBM create new tab on navbar for placement reports - done
+- MIBS TESTIMONIALS design updates - done
+- Remove video and new design for scrolling placement student box - done
+
+
+05-08-2025
+Today's Update:
+1) MIBS course program and footer updates - done
+2) MIBM create new page for placement reports - done
+3) add new video instead of img carousel on home page - in progress
+4) MCOPT create 2025-26 year tab and updates in curricular - done
+
+
+06-08-2025
+Today's Update:
+- MIBM add new video instead of img carousel on home page - done
+- MIBM faculty names some new design - done
+- St. Xavier's mandatory disclosure updated 
+	  1) fee structure
+	  2) PTA
+	  3) Trustee list
+
+
+***************************************
+08-08-2025
+Today's Update:
+- MIBS website adjustments to the footer, extra spacing and improving alignment for a cleaner look - done
+- MCOPT website Restructure the Curricular Events section to display content year-wise - done
+
+
+09-08-2025
+Today's Update:
+- Implement new requirement of button in the header and linking it to the form - done
+- Add new updates to the navigation bar for easier access of forms - done
+- new requirement of WhatsApp chatbot - done
+
+########################################
+11-08-2025
+Today's Update:
+Seratek website
+1) Initialise and set up the Next.js environment - done 
+2) Design and implement the website responsive footer - done 
+3) Create the 'Summary of Products' component - done
+4) Create the 'Know the Products' component to provide - done
+
+
+12-08-2025
+Today's Update:
+1) Develop the 'Client Testimonials' section with proper alignment and a fully responsive layout - done
+2) Create the 'Recent Updates / News' section with smooth infinite sliding functionality - done (auto scrolling done by r)
+3) Design and implement the UI for the 'Request for DEMO' form component - done
+4) Ensured all components are fully responsive
+
+
+13-08-2025
+Today's Update:
+1) Develop horizontal image and information component for the School, College and University pages - done
+2) whole 'For School' page with proper layout, content placement and responsiveness - done
+3) Update MIBM website by adding a new 'Ad' on tab to the nav bar - done
+
+
+14-08-2025
+Today's Update:
+- Complete the College page with all required content and layout adjustments - done
+- Update the College and School pages by align elements and apply their respective fonts - done 
+(fonts added by R). 
+- St. Xavier’s Kop - new requirement of tab and page to viewing of PDF documents directly on the site - done
+
+
+18-08-2025
+Today's Update:
+- adjust font, height/width across Home, Solution – School and College pages to maintain uniformity - done
+- Completed the implementation of the Home page carousel, ensuring smooth functionality and proper display 
+
+
+19-08-2025
+Today's Update:
+1) Create a 'Overview component' along with its background styling for all pages - done
+2) Develop the whole University page - done
+3) Apply the new 'Overview component' to School, College and University pages - done
+4) Added a 'Quick Demo' button on the Home page carousel - done
+
+
+20-08-2025
+Today's Update:
+1) Built the all navigation bar menu with working options (except the hamburger menu)
+2) Implement dropdown functionality in the menu with proper alignment - done
+3) Add the dropdown options to the menu - done
+4) Link the Home page to the logo for navigation - done
+
+
+21-08-2025
+Today's Update:
+- Implemented the changes suggested by Shubhada mam - 
+  	- Alignment adjustments for image and information on the School page
+  	- Updated button colors and alignment
+  	- Applied overview section changes
+  	- Modified text sizes, fonts and related styling
+- Updated the Mandatory Disclosure updates on the St. Xavier’s Pune website
+
+
+22-08-2025
+Today's Update:
+- Alignment adjustments for image and information on the College and University pages - done
+- Meeting with Poly intern student about react project - done
+- Fix the vertical img and info cards and description component - done
+
+
+25-08-2025
+Today's Update:
+- Create Feature Page
+	- create heading, info, button component - done
+	- add overview bg img to feature page - done
+	- integrated point-description component - done
+	- create full page responsive - done
+- make all solution pages (for schools, colleges, universities) responsive - done
+
+ 
+
+
+26-08-2025
+Today's Update:
+- Created the Industry We Serve page
+	- Developing a reusable Icon-Info Box component
+	- icon added
+	- Aligning all elements as per the Figma design
+- New urgent requirement of the MIBM website - done
+
+
+28-08-2025
+Today's Update:
+1) St Xavier's Pune website mandatory disclosure updates - done
+2) MIBM website new lateral form button and horizontal scroll navbar changes - done
+3) MIBS website new admission tab - done
+4) Seratek website - About us - vission-mission page - done
+
+
+29-08-2025
+Today's Update:
+- built whole blog page
+	- created webinars/events, Whitepapers / eBooks, Product Brochures 
+	- created ERP Readiness Checklist 
+
+
+30-08-2025
+Today's Update:
+- updates on the St. Xavier’s Kop website - done
+- changes on the MIBS website - done
+- Developed entire 'Client' page for Seratek -
+	- Aligning all client images properly for a neat layout
+	- Implementing the center text and SVG elements as per design
+- MIBM new updates - done
+
+
+01-09-2025
+Today's Update:
+- build component for product page - done
+- make half of product page - done
+
+
+03-09-2025
+Today's Update:
+- MIBS website changes and updates - doen
+- New project setup and review - done
+- Department List task starts 
+
+
+04-09-2025
+Today's Update:
+- St Xaviers Kolhapur website redirect issue - done
+- added tab and all gallery updates - done
+- new button for form and also show in news - done
+- department list ui - done
+(laptop carried)
+
+
+05-09-2025
+Today's Update:
+- department list backend integration - done
+- some code changes - done
+
+
+08-09-2025
+Today's Update:
+- Dashboard widgets admission module
+- St.Xaviers Kop new requirement 
+	- Create new tab of download - done
+	- create and add form tab and magazine to download - done
+- MIBM new updates - done
+
+
+09-09-2025
+Today's Update:
+- Student dashboard as per discussed in meeting setup (due to db clear)
+- MIBS add new pdf viewers buttons - done
+- MIBM add new announcement - done
+- St.Xaviers kop gallery update - done
+
+
+10-09-2025
+Today's Update:
+- Student dashboard - done application status, application id, date
+- MIBS add new scrolling points - done
+- MCOPT add new updates and changes - done
+
+
+11-09-2025
+Today's Update:
+- MCOPT add some photos - done
+- Student Dashboard - done - pr raise
+
+
+12-09-2025
+Today's Update:
+- Student Dashboard 
+	- done resolve pr comments
+	- pr merged
+
+13-09-2025
+Today's Update:
+- MCOPT - all done
+- MIBM - new updates - done
+- Student Dashboard new Admission payment summary
+
+
+
+15-09-2025
+Today's Update:
+- Student dashboard make basic ui -  done
+- MIBM updates - done
+
+
+16-09-2025
+Today's Update:
+- Student dashboard make UI of Three widgets and integrate with backend -  done
+- MIBM new updates - done
+- St xaviers kop new Updates - done
+
+
+17-09-2025
+Today's Update:
+- Student dashboard make UI of three widgets optimize - done
+- St xaviers pune update - done
+- St xaviers kop news added - done
+(git issue occured)
+
+
+18-0-2025
+Today's Update:
+- Studnet dashboard done but not pr not raise because git issue
+- Depratment list pr rais - done
+- comments resolve - done
+
+
+19-09-2025
+Today's Update:
+- Scheme list, form, edit, credit pages ui - done 
+- add some mcopt photos - done
+
+(laptop carried)
+- work on seratek website
+- some ui code optimization in scheme pages
+
+
+22-09-2025
+Today's Update:
+- Scheme page credit page ui - done
+- St xaviers Pune new requirement - in progress
+- st xaviers pune updates - done
+
+23-09-2025
+Today's Update:
+- Scheme page fetch data integration - done
+- credit definition fetch integration - done
+- mcopt photos updates - done
+- St. Xaviers pune updates - done
+
+
+24-09-2025
+Today's Update:
+- scheme page form integration - in progress
+- bug fix student dashboard - done
+
+
+25-09-2025
+Today's Update:
+- scheme page form create integration - done
+- scheme page delete integration and total marks updates - done
+- st. xaviers kop news updates - done
+- MIBM new updates for admission - done
+
+
+26-09-2025
+Today's Update:
+- scheme page edit form - in progress (issue occurred)
+- st xaviers pune new updates for staff details and principal desk - done
+
+
+27-09-2025
+Today's Update:
+- scheme page edit issue solve with backend (Utkarsh) -  done
+- work on mibm pdf updates issue - in progress
+
+
+29-09-2025
+Today's Update:
+- scheme page auto credit calculation - done
+- mibm pdf updates issue - solved - done
+
+
+
+auth - commented
+
+MIBS- origin/NewTasks
+MIBM- NewTasks/allchanges
+mcopt - Tasks/task3199
+st xviers kop - NewTasks/allupdates
+st xaviers pune - Task-visionandfacultypages
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
