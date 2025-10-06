@@ -1,0 +1,112 @@
+"use client";
+
+// utils
+import { cn } from "@/lib/utils";
+
+//ui components
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
+import { tabHeight, tabStyle } from "@/config/styles/colors";
+import { Button } from "@/components/ui/button";
+import { CreateSchemeForm } from "@/components/academics/tabs/schemeAndMarks/tabs/Scheme/CreateScheme";
+import { SchemeTable } from "@/components/academics/tabs/schemeAndMarks/tabs/Scheme/schemeTable";
+import CreditDefinition from "@/components/academics/tabs/schemeAndMarks/tabs/Credit/creditDefinition";
+
+//hooks
+import { useRef, useState } from "react";
+import { useGenericStateUpdater } from "@/hooks/common/useGenericStateUpdate";
+import { IScheme } from "@/interface/data-setup/ISchemes";
+
+//interface for scheme state
+export interface ISchemeState {
+    _id: string | null;
+    schemes: IScheme[];
+    OpenCreate: boolean;
+    OpenEdit: boolean;
+    CurrentScheme?: IScheme;
+    Loading: boolean;
+    OpenDelete: boolean
+}
+
+//initial state
+export const InitialSchemeState: ISchemeState = {
+    _id: null,
+    schemes: [],
+    OpenCreate: false,
+    OpenEdit: false,
+    CurrentScheme: undefined,
+    Loading: false,
+    OpenDelete: false
+};
+
+/**
+ * SchemeAndMarks Component
+ * 
+ * Provides a tabbed interface to manage academic schemes and credit definitions.
+ * 
+ * Tabs:
+ *  - "Schemes": Displays the scheme table and allows creating new schemes.
+ *  - "Credit Defination": Displays credit definitions.
+ * 
+ * Features:
+ *  - Create Scheme modal with automatic table refresh.
+ *  - State management for active tab, modal visibility, and current scheme.
+ *  - Custom scrollbar for overflow content.
+ */
+
+export const SchemeAndMarks = () => {
+    //for scheme table updates the data on create
+    const tableRef = useRef<{ refetch: () => void }>(null);
+
+    // state for tabs
+    const [activeTab, setActiveTab] = useState("Schemes");
+    const tabs = [
+        { value: "Schemes", label: "Schemes", component: <SchemeTable ref={tableRef} /> },
+        { value: "CreditDefinition", label: "Credit Definition", component: <CreditDefinition /> },
+    ];
+
+    //update state
+    const [state, setState] = useState<ISchemeState>(InitialSchemeState);
+    const updateState = useGenericStateUpdater(setState);
+
+    return (
+        <div className="overflow-auto custom-scrollbar">
+            <Tabs defaultValue="Schemes" onValueChange={setActiveTab}>
+                <TabsList className={cn("border-b w-full flex justify-between px-4 bg-background rounded-none rounded-ss-lg rounded-se-lg", tabHeight)}>
+                    <div className="flex gap-10">
+                        {tabs.map((item) => (
+                            <TabsTrigger key={item.value} value={item.value} className={cn(tabStyle, "text-sm")}>
+                                {item.label}
+                            </TabsTrigger>
+                        ))}
+                    </div>
+
+                    {/* buttons on top */}
+                    {activeTab === "Schemes" && (
+                        <Button variant="outlinePrimary" onClick={() => updateState({ OpenCreate: true })}>
+                            Create Scheme
+                        </Button>
+                    )}
+                </TabsList>
+
+                {/* tabs components */}
+                {tabs.map((item) => (
+                    <TabsContent key={item.value} value={item.value} className="px-0 mt-3">
+                        {item.component}
+                    </TabsContent>
+                ))}
+            </Tabs>
+
+            {/* create Scheme Form Dialog */}
+            {state.OpenCreate && (
+                <CreateSchemeForm
+                    open={state.OpenCreate}
+                    onClose={() => updateState({ OpenCreate: false })}
+                    updateState={updateState}
+                    refetch={() => {
+                        if (tableRef.current) tableRef.current.refetch();
+                    }}
+                />
+            )}
+        </div>
+    );
+};
