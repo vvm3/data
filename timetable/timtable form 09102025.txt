@@ -1,0 +1,240 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { z } from "zod";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { InputController } from "@/components/form-controls/input-controller";
+import { CalendarIcon } from "lucide-react";
+import { customStyle } from "@/config/styles/colors";
+import { createDivisionTimetable, editDivisionTimetable } from "@/app/actions/academic/division";
+import { toast } from "sonner";
+import { IDivisionTimetable } from "@/interface/academic/IDivision";
+
+const timetableSchema = z
+    .object({
+        TimetableName: z.string().min(1, "Timetable name is required").max(50, "Max 50 characters allowed"),
+        From: z.date({ required_error: "Start date is required" }),
+        To: z.date({ required_error: "End date is required" }),
+    })
+    .refine((data) => data.To >= data.From, {
+        message: "End date must be greater than start date",
+        path: ["To"],
+    });
+
+export type TimetableFormValues = z.infer<typeof timetableSchema>;
+
+interface TimetableFormProps {
+    open: boolean;
+    mode: "create" | "update";
+    initialData?: TimetableFormValues & { _id?: string }; // include _id for edit
+    onClose: () => void;
+    onSuccess?: () => void; // callback to refresh parent table
+}
+
+
+export const TimetableForm: React.FC<TimetableFormProps> = ({ open, mode, initialData, onClose, onSuccess }) => {
+    //states
+    const [fromOpen, setFromOpen] = useState(false);
+    const [toOpen, setToOpen] = useState(false);
+
+    //form
+    const form = useForm<TimetableFormValues>({
+        resolver: zodResolver(timetableSchema),
+        defaultValues: {
+            TimetableName: "",
+            From: undefined,
+            To: undefined,
+        },
+    });
+
+    // const onSubmit = async (values: TimetableFormValues) => {
+    //     try {
+    //         const payload: IDivisionTimetable = {
+
+    //             TimetableName: values.TimetableName,
+    //             From: values.From.toISOString().split("T")[0], // "YYYY-MM-DD"
+    //             To: values.To.toISOString().split("T")[0],
+    //             Status: "Active", // default or based on your logic
+    //         };
+    //         console.log(payload);
+
+    //         if (mode === "create") {
+    //             await createDivisionTimetable(payload);
+    //         } else if (mode === "update" && initialData?._id) {
+    //             await editDivisionTimetable(initialData._id, payload);
+    //         }
+
+    //         toast.success("Success!");
+    //         onSuccess?.();
+    //         onClose();
+    //     } catch (err: any) {
+    //         toast.error(err.message);
+    //     }
+    // };
+
+    const onSubmit = async (values: TimetableFormValues) => {
+        try {
+            const payload: IDivisionTimetable = {
+                TimetableName: values.TimetableName,
+                From: `${values.From.getFullYear()}-${(values.From.getMonth() + 1)
+                    .toString()
+                    .padStart(2, "0")}-${values.From.getDate().toString().padStart(2, "0")}`,
+                To: `${values.To.getFullYear()}-${(values.To.getMonth() + 1)
+                    .toString()
+                    .padStart(2, "0")}-${values.To.getDate().toString().padStart(2, "0")}`,
+                Status: "Active",
+            };
+            console.log(payload);
+            if (mode === "create") {
+                await createDivisionTimetable(payload);
+            } else if (mode === "update" && initialData?._id) {
+                await editDivisionTimetable(initialData._id, payload);
+            }
+
+            toast.success("Success!");
+            onSuccess?.();
+            onClose();
+        } catch (err: any) {
+            toast.error(err.message);
+        }
+    };
+
+
+
+
+
+    //funstion to formate date in correctly display in date string
+    const formatDisplayDate = (date: Date) => {
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${date.getDate().toString().padStart(2, "0")} ${months[date.getMonth()]}`;
+    };
+
+    //initial
+    // useEffect(() => {
+    //     if (initialData) {
+    //         form.reset(initialData); // fill with edit data
+    //     } else {
+    //         form.reset({ TimetableName: "", From: undefined, To: undefined }); // fresh create
+    //     }
+    // }, [initialData, open]);
+    useEffect(() => {
+        const parseDate = (value?: string | Date) => {
+            if (!value) return undefined;
+
+            if (value instanceof Date) return value;
+
+            // YYYY-MM-DD -> local date
+            const [year, month, day] = value.split("-").map(Number);
+            return new Date(year, month - 1, day); // local date at 00:00
+        };
+
+        if (initialData) {
+            form.reset({
+                TimetableName: initialData.TimetableName || "",
+                From: parseDate(initialData.From),
+                To: parseDate(initialData.To),
+            });
+        } else {
+            form.reset({
+                TimetableName: "",
+                From: undefined,
+                To: undefined,
+            });
+        }
+    }, [initialData, open]);
+
+
+
+    return (
+        <Dialog open={open} onOpenChange={onClose}>
+            <DialogContent className="max-w-md space-y-4">
+                <DialogHeader>
+                    <DialogTitle className="font-normal text-custom">
+                        {mode === "create" ? "Create" : "Update"} <span className="text-primary">Timetable</span>
+                    </DialogTitle>
+                </DialogHeader>
+
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <InputController
+                            name="TimetableName"
+                            control={form.control}
+                            label="Timetable Name"
+                            placeholder="Enter timetable name"
+                            className={cn("w-full", customStyle)}
+                            maxLength={50}
+                            type="text"
+                        />
+
+                        <h2 className="font-normal text-custom">Timetable Duration</h2>
+                        <div className="flex gap-4">
+                            {/* From */}
+                            <Controller
+                                name="From"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <div className="flex flex-col w-full">
+                                        <Popover open={fromOpen} onOpenChange={setFromOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" className="w-full text-left justify-between">
+                                                    {field.value ? formatDisplayDate(field.value) : "Start Date"}
+                                                    <CalendarIcon className="text-blue-500" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={field.value}
+                                                    onSelect={(date) => { field.onChange(date); setFromOpen(false); }}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {fieldState.error && <p className="text-red-500 text-sm mt-1">{fieldState.error.message}</p>}
+                                    </div>
+                                )}
+                            />
+
+                            {/* To */}
+                            <Controller
+                                name="To"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <div className="flex flex-col w-full">
+                                        <Popover open={toOpen} onOpenChange={setToOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" className="w-full text-left justify-between">
+                                                    {field.value ? formatDisplayDate(field.value) : "End Date"}
+                                                    <CalendarIcon className="text-blue-500" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={field.value}
+                                                    onSelect={(date) => { field.onChange(date); setToOpen(false); }}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {fieldState.error && <p className="text-red-500 text-sm mt-1">{fieldState.error.message}</p>}
+                                    </div>
+                                )}
+                            />
+                        </div>
+
+                        <div className="flex justify-between gap-2 pt-4">
+                            <Button variant="outlinePrimary" onClick={onClose}>Cancel</Button>
+                            <Button type="submit">{mode === "create" ? "Create" : "Update"}</Button>
+                        </div>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+    );
+};

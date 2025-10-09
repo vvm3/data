@@ -1,0 +1,51 @@
+// Zod imports
+import { messages } from "@/config/messages"
+import { IScheme } from "@/interface/data-setup/ISchemes";
+import { z } from "zod"
+
+// Dynamic Zod Schemas
+export const schemeFormSchema = (existingSchemes: IScheme[], currentSchemeId?: string) => z.object({
+  id: z.string().nullable(),
+  schemeName: z.string().min(1, messages.SchemeAndMarks.schemeValidationError).max(10).refine(
+    (val) => {
+      // Exclude the current scheme from duplicate check
+      const otherSchemes = existingSchemes.filter(s => s._id !== currentSchemeId);
+      return !otherSchemes.some(s => s.Scheme.toLowerCase() === val.toLowerCase());
+    },
+    { message: messages.SchemeAndMarks.schemeExists }
+  ),
+  credits: z.string().refine(val => !isNaN(Number(val)), { message: messages.SchemeAndMarks.creditValidationError }),
+  pedagogy: z.record(z.coerce.number().min(0).max(10)).refine(
+    (pedagogies) => Object.values(pedagogies).some(hours => hours > 0),
+    { message: messages.SchemeAndMarks.pedagogyHoursValidation }
+  ),
+  marks: z.record(z.object({
+    internal: z.coerce.number().min(0).max(20),
+    final: z.coerce.number().min(0).max(80)
+  }))
+}).superRefine((data, ctx) => {
+
+  //Marks validation: if pedagogy hours > 0, marks must be > 0
+  Object.entries(data.pedagogy).forEach(([key, hours]) => {
+    if (hours > 0) {
+      const mark = data.marks[key];
+      if (!mark || (mark.internal <= 0 && mark.final <= 0)) {
+        ctx.addIssue({
+          path: ["marks", key, "internal"],  // specific field
+          code: z.ZodIssueCode.custom,
+          message: `Internal/Final marks must be entered for ${key}`
+        });
+        ctx.addIssue({
+          path: ["marks", key, "final"],  // specific field
+          code: z.ZodIssueCode.custom,
+          message: `Internal/Final marks must be entered for ${key}`
+        });
+      }
+    }
+  });
+
+});
+
+
+//type
+export type DynamicSchemeFormData = z.infer<ReturnType<typeof schemeFormSchema>>

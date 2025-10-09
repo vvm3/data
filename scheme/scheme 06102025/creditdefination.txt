@@ -1,0 +1,66 @@
+"use client";
+
+// utils
+import { cn } from "@/lib/utils";
+
+// config
+import { tableStyle } from "@/config/styles/colors";
+
+//ui components
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import DefaultTableRow from "@/components/common/table-rows";
+
+//hooks
+import { useCreditDefinition } from "@/hooks/educational-masters";
+
+/**
+ * CreditDefinition Component
+ * --------------------------
+ * Displays a table of credit definitions with their name, hours, and credits.
+ * Handles loading and empty states using DefaultTableRow.
+ */
+
+export default function CreditDefinition() {
+    //data fetching
+    const { data: creditData = [], isLoading: CreditLoading, refetch } = useCreditDefinition();
+
+    //heading
+    const headers = ["Name", "Hours", "Credits"];
+
+    return (
+        <div aria-label="Credit Definitions Page">
+            <Table className="h-[calc(100vh-270px)] border shadow-lg rounded-lg custom-scrollbar">
+                <TableHeader className="sticky top-0 bg-card">
+                    <TableRow className={cn(tableStyle.header)}>
+                        {headers.map((item, id) => (
+                            <TableHead key={id} className="text-center">
+                                {item}
+                            </TableHead>
+                        ))}
+                    </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                    {creditData.map((row, index) => (
+                        <TableRow key={row._id}
+                            className="py-4 border cursor-default [&>td]:px-[24px] [&>td]:text-size-tabs [&>td]:text-table-body-color"
+                        >
+                            <TableCell className="text-center px-6 py-3">{row.Name ?? ""}</TableCell>
+                            <TableCell className="text-center px-6 py-3">{row.Duration ?? 0}</TableCell>
+                            <TableCell className="text-center px-6 py-3">{row.Credits ?? 0}</TableCell>
+                        </TableRow>
+                    ))}
+
+                    {/* Data not found */}
+                    {creditData.length === 0 && (<DefaultTableRow
+                        type="credits"
+                        search=""
+                        colSpan={headers.length}
+                        isEmpty={creditData.length === 0}
+                        isLoading={CreditLoading}
+                    />)}
+                </TableBody>
+            </Table>
+        </div>
+    );
+}

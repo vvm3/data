@@ -1,0 +1,135 @@
+//timetable for input without sort
+
+"use client";
+
+// React
+import React, { useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+
+// UI Components
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import CircleIconWrapper from "@/components/custom/CircleIconWrapper";
+import { Calendar, Download, Edit2Icon, Trash2Icon } from "lucide-react";
+
+// Config/Interface
+import { messages } from "@/config/messages";
+import { TimetableListProps } from "@/interface/academic/IDivision";
+import { useRouter } from "next/router";
+
+// Example timetables data
+const TimetableData = [
+    { name: "Timetable 1", fromDate: "1 June", toDate: "31 Aug", status: "Frozen" },
+    { name: "Timetable 2", fromDate: "1 Sep", toDate: "31 Oct", status: "Pending" },
+];
+
+export default function TimetableList({ divisionName }: TimetableListProps) {
+    const methods = useForm();
+    // const router = useRouter();
+    const [searchTerm, setSearchTerm] = useState<string>("");
+
+    // Filter timetables based on status
+    const filteredTimetables = TimetableData.filter((timetable) =>
+        timetable.status.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <FormProvider {...methods}>
+            <div aria-label="Timetables List table">
+                {/* Header: division name + Search + Add */}
+                <div className="flex justify-between items-center mb-3 px-1">
+                    <div className="text-primary font-semibold">{divisionName}</div>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            placeholder="Search by status..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="border rounded px-2 py-1"
+                        />
+                        <Button
+                            variant="outlinePrimary"
+                            className="px-4 py-1 rounded hover:bg-primary/10 transition-colors"
+                            onClick={() => alert("Add new timetable action")}
+                        >
+                            Add
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Timetables Table */}
+                <Table className="h-[calc(100vh-270px)] border shadow-lg rounded-lg hide-scrollbar">
+                    <TableHeader className="sticky top-0 bg-card">
+                        <TableRow className="hover:bg-opacity-100 bg-table-header-bg [&_th]:text-table-header-color [&>th]:px-[32px] text-size-tabs">
+                            <TableHead>Timetable</TableHead>
+                            <TableHead>From</TableHead>
+                            <TableHead>To</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                        {filteredTimetables.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                                    {messages.division.FacultyNotFound}
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            filteredTimetables.map((timetable, index) => (
+                                <TableRow
+                                    key={index}
+                                    className="border cursor-default [&>td]:px-[32px] [&>td]:py-5 [&>td]:text-size-tabs [&>td]:text-table-body-color hover:bg-muted/50 transition-colors"
+                                >
+                                    <TableCell>{timetable.name}</TableCell>
+                                    <TableCell>{timetable.fromDate}</TableCell>
+                                    <TableCell>{timetable.toDate}</TableCell>
+                                    <TableCell>{timetable.status}</TableCell>
+
+                                    {/* Actions */}
+                                    <TableCell className="flex justify-center gap-2 py-2">
+                                        <CircleIconWrapper toolTipText="Calendar">
+                                            <Calendar
+                                                size={18}
+                                                className="text-primary cursor-pointer"
+                                                onClick={() => alert(`View calendar for ${timetable.name}`)}
+                                            />
+                                        </CircleIconWrapper>
+
+                                        <CircleIconWrapper toolTipText="Edit">
+                                            <Edit2Icon
+                                                size={18}
+                                                className="text-primary cursor-pointer"
+                                                onClick={() => alert(`Edit ${timetable.name}`)}
+                                            />
+                                        </CircleIconWrapper>
+
+                                        <CircleIconWrapper toolTipText="Download">
+                                            <Download
+                                                size={18}
+                                                className="text-primary cursor-pointer"
+                                                onClick={() => alert(`Download ${timetable.name}`)}
+                                            />
+                                        </CircleIconWrapper>
+
+                                        <CircleIconWrapper toolTipText="Delete" destructive>
+                                            <Trash2Icon
+                                                size={18}
+                                                className="text-destructive cursor-pointer"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    alert(`Delete ${timetable.name}`);
+                                                }}
+                                            />
+                                        </CircleIconWrapper>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+        </FormProvider>
+    );
+}

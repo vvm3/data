@@ -1,0 +1,340 @@
+//create scheme form
+
+"use client"
+
+//utils
+import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+
+//hooks
+import { useEffect } from "react"
+
+//ui components
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Form } from "@/components/ui/form"
+import { Button } from "@/components/ui/button"
+import { useForm } from "react-hook-form"
+import { InputController } from "@/components/form-controls/input-controller"
+import { customStyle, tableStyle } from "@/config/styles/colors"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
+//api function
+import { createScheme, editScheme } from "@/app/actions/masters/academic"
+
+//interface
+import { IScheme, ISchemeState } from "@/components/academics/tabs/schemeAndMarks/SchemeAndMarks"
+
+//interface for form
+interface SchemeFormData {
+  id: string | null
+  schemeName: string
+  credits: string
+  pedagogy: {
+    lecture: number
+    practical: number
+    tutorial: number
+    internship: number
+    project: number
+  }
+  lecture: { internal: number; final: number }
+  practical: { internal: number; final: number }
+  tutorial: { internal: number; final: number }
+  internship: { internal: number; final: number }
+  project: { internal: number; final: number }
+}
+
+//props
+type CreateSchemeFormProps = {
+  open: boolean
+  onClose: () => void
+  scheme?: IScheme
+  updateState: (val: any) => void
+  refetch?: () => void
+}
+
+export const CreateSchemeForm = ({
+  open,
+  onClose,
+  scheme,
+  refetch,
+  updateState
+}: CreateSchemeFormProps) => {
+
+  //create or update come from edit/create
+  const mode = scheme ? "update" : "create"
+  // console.log(mode);
+
+  //defaults value
+  const defaults: SchemeFormData = {
+    id: null,
+    schemeName: "",
+    credits: "0",
+    pedagogy: { lecture: 0, practical: 0, tutorial: 0, internship: 0, project: 0 },
+    lecture: { internal: 0, final: 0 },
+    practical: { internal: 0, final: 0 },
+    tutorial: { internal: 0, final: 0 },
+    internship: { internal: 0, final: 0 },
+    project: { internal: 0, final: 0 },
+  }
+
+  //set form with default values
+  const form = useForm<SchemeFormData>({
+    defaultValues: defaults,
+  });
+
+  useEffect(() => {
+    if (scheme) {
+      // setting values of form
+      console.log("Form hydrating with scheme ID:", scheme?._id, "Name:", scheme?.Scheme);
+      form.setValue("id", scheme._id);
+      form.setValue("schemeName", scheme.Scheme);
+      form.setValue("credits", scheme.TotalCredits ?? "0");
+
+      //pedagogy
+      const pedagogy = {
+        lecture: scheme.Pedagogy.find((p) => p.Name === "Lecture")?.Duration || 0,
+        practical: scheme.Pedagogy.find((p) => p.Name === "Practical")?.Duration || 0,
+        tutorial: scheme.Pedagogy.find((p) => p.Name === "Tutorial")?.Duration || 0,
+        internship: scheme.Pedagogy.find((p) => p.Name === "Internship")?.Duration || 0,
+        project: scheme.Pedagogy.find((p) => p.Name === "Project")?.Duration || 0,
+      };
+      form.setValue("pedagogy", pedagogy);
+
+      //marks distribution
+      const lecture = {
+        internal: Number(scheme.MarksDistribution.find((m) => m.Name === "Lecture")?.InternalMarks ?? 0),
+        final: Number(scheme.MarksDistribution.find((m) => m.Name === "Lecture")?.FinalMarks ?? 0),
+      };
+      form.setValue("lecture", lecture);
+
+      const practical = {
+        internal: Number(scheme.MarksDistribution.find((m) => m.Name === "Practical")?.InternalMarks ?? 0),
+        final: Number(scheme.MarksDistribution.find((m) => m.Name === "Practical")?.FinalMarks ?? 0),
+      };
+      form.setValue("practical", practical);
+
+      const tutorial = {
+        internal: Number(scheme.MarksDistribution.find((m) => m.Name === "Tutorial")?.InternalMarks ?? 0),
+        final: Number(scheme.MarksDistribution.find((m) => m.Name === "Tutorial")?.FinalMarks ?? 0),
+      };
+      form.setValue("tutorial", tutorial);
+
+      const internship = {
+        internal: Number(scheme.MarksDistribution.find((m) => m.Name === "Internship")?.InternalMarks ?? 0),
+        final: Number(scheme.MarksDistribution.find((m) => m.Name === "Internship")?.FinalMarks ?? 0),
+      };
+      form.setValue("internship", internship);
+
+      const project = {
+        internal: Number(scheme.MarksDistribution.find((m) => m.Name === "Project")?.InternalMarks ?? 0),
+        final: Number(scheme.MarksDistribution.find((m) => m.Name === "Project")?.FinalMarks ?? 0),
+      };
+      form.setValue("project", project);
+    }
+  }, [form, scheme]);
+
+
+  //function for on submit form on create or edit
+  const onSubmit = async (formData: SchemeFormData) => {
+    try {
+      const mode = scheme?._id ? "update" : "create";
+      const totalMarks = (["lecture", "practical", "tutorial", "internship", "project"] as const)
+        .reduce((sum, key) =>
+          sum + Number(formData[key].internal || 0) + Number(formData[key].final || 0), 0
+        );
+
+      const payload: Partial<IScheme> = {
+        Scheme: formData.schemeName,
+        TotalCredits: String(formData.credits),
+        TotalMarks: totalMarks,
+        Pedagogy: [
+          { Name: "Lecture", Duration: Number(formData.pedagogy.lecture) },
+          { Name: "Practical", Duration: Number(formData.pedagogy.practical) },
+          { Name: "Tutorial", Duration: Number(formData.pedagogy.tutorial) },
+          { Name: "Internship", Duration: Number(formData.pedagogy.internship) },
+          { Name: "Project", Duration: Number(formData.pedagogy.project) },
+        ],
+        MarksDistribution: [
+          { Name: "Lecture", InternalMarks: Number(formData.lecture.internal), FinalMarks: Number(formData.lecture.final) },
+          { Name: "Practical", InternalMarks: Number(formData.practical.internal), FinalMarks: Number(formData.practical.final) },
+          { Name: "Tutorial", InternalMarks: Number(formData.tutorial.internal), FinalMarks: Number(formData.tutorial.final) },
+          { Name: "Internship", InternalMarks: Number(formData.internship.internal), FinalMarks: Number(formData.internship.final) },
+          { Name: "Project", InternalMarks: Number(formData.project.internal), FinalMarks: Number(formData.project.final) },
+        ]
+
+      };
+
+      if (mode === "update" && formData.id) {
+        console.log("Submitting form for scheme ID:", formData.id);
+        console.log("Payload:", payload);
+        await editScheme(formData.id, payload);
+        toast.success("Scheme updated successfully");
+        refetch?.();
+        updateState({ OpenEdit: false, CurrentScheme: undefined });
+      } else {
+        await createScheme(payload);
+        toast.success("Scheme created successfully");
+        refetch?.();
+        updateState({ OpenCreate: false });
+      }
+      onClose();
+
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  useEffect(() => {
+    if (!open) form.reset(defaults);
+  }, [open]);
+
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar space-y-3">
+        <DialogHeader>
+          <DialogTitle className="font-normal text-custom">
+            {mode === "create" ? "Create" : "Update"}{" "}
+            <span className="text-primary">Scheme</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Scheme Name */}
+            <InputController
+              name="schemeName"
+              label="Scheme Name"
+              className={cn("w-[300px]", customStyle)}
+              autoFocus={false}
+              maxLength={50}
+              type="text"
+            />
+
+            {/* pedagogy */}
+            <h2>Pedagogy</h2>
+            <Table className="h-fit border rounded-lg custom-scrollbar">
+              <TableHeader className="sticky top-0 bg-card">
+                <TableRow className={cn(tableStyle.header)}>
+                  <TableHead className="text-center">Lecture</TableHead>
+                  <TableHead className="text-center">Practical</TableHead>
+                  <TableHead className="text-center">Tutorial</TableHead>
+                  <TableHead className="text-center">Internship</TableHead>
+                  <TableHead className="text-center">Project</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {/* input for pedagogy */}
+                <TableRow>
+                  <TableCell className="text-center px-6 py-5">
+                    <InputController
+                      name="pedagogy.lecture"
+                      type="number"
+                      label=""
+                      className="border-none text-center"
+                    />
+                  </TableCell>
+                  <TableCell className="text-center px-6 py-5">
+                    <InputController
+                      name="pedagogy.practical"
+                      type="number"
+                      label=""
+                      className="border-none text-center"
+                    />
+                  </TableCell>
+                  <TableCell className="text-center px-6 py-5">
+                    <InputController
+                      name="pedagogy.tutorial"
+                      type="number"
+                      label=""
+                      className="border-none text-center"
+                    />
+                  </TableCell>
+                  <TableCell className="text-center px-6 py-5">
+                    <InputController
+                      name="pedagogy.internship"
+                      type="number"
+                      label=""
+                      className="border-none text-center"
+                    />
+                  </TableCell>
+                  <TableCell className="text-center px-6 py-5">
+                    <InputController
+                      name="pedagogy.project"
+                      type="number"
+                      label=""
+                      className="border-none text-center"
+                    />
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+
+            {/* credits */}
+            <div className="flex flex-row items-center gap-5 space-y-1">
+              <label htmlFor="credits" className="text-sm font-medium">
+                Credits
+              </label>
+              <InputController
+                name="credits"
+                label=""
+                type="number"
+                placeholder="0"
+                className="w-[70px] text-center"
+              />
+            </div>
+
+            {/* Marks distribution */}
+            <h2>Marks Distribution</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              {["Lecture", "Practical", "Tutorial", "Internship", "Project"].map(
+                (category) => (
+                  <div
+                    key={category}
+                    className="flex flex-col gap-3 rounded-xl border border-gray-300 p-4"
+                  >
+                    <h3 className="font-medium text-center">{category}</h3>
+                    <InputController
+                      name={`${category.toLowerCase()}.internal`}
+                      label="Internal Marks"
+                      type="number"
+                      placeholder=""
+                      className="w-full"
+                    />
+                    <InputController
+                      name={`${category.toLowerCase()}.final`}
+                      label="Final Marks"
+                      type="number"
+                      placeholder=""
+                      className="w-full"
+                    />
+                  </div>
+                )
+              )}
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-between">
+              <Button
+                type="button"
+                variant="outlinePrimary"
+                aria-label="Cancel"
+                className="w-[120px]"
+                onClick={onClose}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                aria-label={mode === "create" ? "Create" : "Update"}
+                className="w-[120px]"
+              >
+                {mode === "create" ? "Create" : "Update"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  )
+}

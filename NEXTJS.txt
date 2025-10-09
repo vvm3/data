@@ -1,0 +1,198 @@
+NEXTJS
+w-[1232px] h-[630px]
+https://nextjs.org/learn/pages-router/data-fetching-implement-getstaticprops
+
+
+
+                    formatter={(value: keyof typeof chartConfigData) => { console.log(value); return chartConfigData[value].label }}
+
+https://webdeskbetest.akronsystems.com/api/admission/department
+
+https://webdeskbetest.akronsystems.com/api/admission/student/preview/application
+
+Nextjs project -->
+- npx create-next-app@latest app_name
+raunak+12
+User@2025
+
+zod for form
+
+
+Pre-rendering --> 
+- Next.js pre-renders every page. This means that Next.js generates HTML for each page in advance, instead of having it all done by client-side JavaScript. Pre-rendering can result in better performance and SEO.
+- Each generated HTML is associated with minimal JavaScript code necessary for that page. When a page is loaded by the browser, its JavaScript code runs and makes the page fully interactive. (This process is called hydration.)
+- if you disable js then also in nextjs page will render
+- If your app is a plain React.js app (without Next.js), there’s no pre-rendering, so you won’t be able to see the app if you disable JavaScript.
+- what happens in nextjs is pre-rendering and in react there is nopre-rendering
+
+
+Static Generation vs Server-side Rendering -->
+- Static Generation is the pre-rendering method that generates the HTML at build time. The pre-rendered HTML is then reused on each request. 
+- Server-side Rendering is the pre-rendering method that generates the HTML on each request.
+
+When to use what -->
+- Static Generation is not a good idea if you cannot pre-render a page ahead of a user's request. Maybe your page shows frequently updated data, and the page content changes on every request.
+- In that case, you can use Server-side Rendering. It will be slower, but the pre-rendered page will always be up-to-date. Or you can skip pre-rendering and use client-side JavaScript to populate frequently updated data.
+
+
+Static Generation without data -->
+- all normal pages are without data, create statically generation
+
+Static Generation with data -->
+- when some pages need to fetch apis at that time we can also use static generation
+- it first fetch api and then generate pages
+
+for that we have to use getStaticProps -->
+- we have to export page component as well as we have to export async function getStaticProps
+- inside this function you can fetch data and return it
+- page component can take it as props
+- so can resolve fetching data 1st at build time
+
+export default function Home(props) { ... }
+ 
+export async function getStaticProps() {
+  // Get external data from the file system, API, DB, etc.
+  const data = ...
+ 
+  // The value of the `props` key will be
+  //  passed to the `Home` component
+  return {
+    props: ...
+  }
+}
+
+
+
+
+
+*Tailwind
+- height - h-10 --> h=4 ==> 4x10=40px
+	  - 10/4 ==> 2.5rem
+
+
+sm: (≥640px)
+
+md: (≥768px → tablets like iPad)
+
+lg: (≥1024px)
+
+xl: (≥1280px)
+
+2xl: (≥1536px)
+
+
+
+- font size - 
+	text-xs  --> smallest
+	text-xm  
+	text-lg	--> medium
+	text-xl --> large
+	text-2xl
+
+- line height
+	leading-5
+
+- grid-cols-1 
+	for mobile view it will do column 1
+
+- md:grid-cols-3
+	for more than 768 px it will do column 3s
+
+- color for text
+	text-[color]
+
+- hover:bg-purple-100 transition
+
+- border
+	border border-purple-500 rounded-md
+
+- letter spacing 
+	tracking-[3%]
+
+- device sizes
+
+	Use sm:px-6 for medium screens (min-width 640px).
+
+	Use md:px-8 for larger screens (min-width 768px).
+
+	xs for extra small
+
+	lg for extra large
+
+**for components --> shadcn
+
+
+
+
+
+**Hot reloading 
+- means do not reload the server, nextjs by default reload and reflect the changes
+
+
+
+**Populate
+- when we want, rack and thier lockers then we findone rack and populate with lockaer and tell them rack 
+
+
+nona design 
+zod chai aur code
+
+mounted
+
+
+**connect different models
+- we use ref and type
+ type: mongoose.Schema.Types.ObjectId
+ ref: "ModelName"
+
+
+
+**Navigation
+- we use Link from next instaed of a tag and its client side navigation
+- Next.js automatically prefetches the code for the linked page in the background. By the time you click the link, the code for the destination page will already be loaded in the background, and the page transition will be near-instant!
+
+
+**To toggle classNames use clsx
+-  <div
+      className={clsx({
+        [styles.success]: type === 'success',
+        [styles.error]: type === 'error',
+      })}
+    > 
+
+or 
+
+ className={clsx(
+        'inline-flex items-center rounded-full px-2 py-1 text-sm',
+        {
+          'bg-gray-100 text-gray-500': status === 'pending',
+          'bg-green-500 text-white': status === 'paid',
+        },
+      )}
+
+cn function
+plugins to export for tailwind css means
+getStaticProps
+
+
+**while create page
+- create state with its interface
+- create updte state function with useCallback
+	- it will ensure the prev and udpdated field will added
+	- and added update state
+- fetchdata function
+
+
+
+4038 - department
+4054 -  scheme pages, 4054-2  - for PR
+3937 - department by raunak as well
+3999 - dashboard
+
+
+
+
+
+
+
+

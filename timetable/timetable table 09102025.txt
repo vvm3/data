@@ -1,0 +1,207 @@
+"use client";
+
+// utils
+import { cn } from "@/lib/utils";
+
+// React
+import React, { useState } from "react";
+
+// UI Components
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import CircleIconWrapper from "@/components/custom/CircleIconWrapper";
+import { CalendarIcon, Download, Edit2Icon, Trash2Icon } from "lucide-react";
+import { TooltipHoverMessage } from "@/components/student/payments-and-dues/TooltipHoverMessage";
+import DeleteDialog from "@/components/custom/delete-dialog";
+
+// Config/Interface
+import { messages } from "@/config/messages";
+import { IDivisionTimetable, TimetableListProps } from "@/interface/academic/IDivision";
+
+// Hooks
+import { useDivisionTimetables } from "@/hooks/educational-masters";
+
+// Styles
+import { getTimetableStatusColor } from "@/config/styles/colors";
+import { toast } from "sonner";
+import { deleteDivisionTimetable } from "@/app/actions/academic/division";
+import { TimetableForm, TimetableFormValues } from "./timetableForm";
+
+export default function TimetableList({ divisionName }: TimetableListProps) {
+
+    //fetch division timetable
+    const { data: timetablesData = [], isLoading: timetablesLoading, refetch } = useDivisionTimetables();
+
+    // Delete dialog state
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+
+    // Loading state for delete operation
+    const [loading, setLoading] = useState(false);
+
+    // Form state
+    const [formOpen, setFormOpen] = useState(false);
+    const [editData, setEditData] = useState<TimetableFormValues & { _id: string } | null>(null);
+
+    // function for formate date in string to date
+    // const formatDate = (dateStr: string) => {
+    //     if (!dateStr) return "-";
+    //     const [year, month, day] = dateStr.split("-").map(Number);
+    //     const date = new Date(year, month - 1, day); // JS months are 0-indexed
+    //     return date.toLocaleDateString("en-US", { day: "2-digit", month: "short" });
+    // };
+    const formatDate = (dateStr: string) => {
+        if (!dateStr) return "-";
+        const [year, month, day] = dateStr.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+
+        // Create an array of short month names
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${String(day).padStart(2, "0")} ${months[date.getMonth()]}`;
+    };
+
+    //function for update state to open form on edit or create
+    const openForm = (timetable?: IDivisionTimetable) => {
+        if (timetable) {
+            setEditData({
+                _id: timetable._id,
+                TimetableName: timetable.TimetableName,
+                From: new Date(timetable.From), // convert string to Date
+                To: new Date(timetable.To),     // convert string to Date
+            });
+        } else {
+            setEditData(null);
+        }
+        setFormOpen(true);
+    };
+
+    //delete dialog function to update state
+    const openDeleteDialog = (id: string) => {
+        setDeleteId(id);
+        setDeleteOpen(true);
+    }
+    // handle delete department
+    const handleDelete = async () => {
+        if (!deleteId) return;
+        try {
+            setLoading(true);
+            await deleteDivisionTimetable(deleteId);
+            toast.success("Deleted successfully");
+            setLoading(false);
+            refetch();
+        } catch (err: any) {
+            toast.error(err.message);
+        } finally {
+            setDeleteId(null);
+            setDeleteOpen(false);
+            setLoading(false);
+        }
+    };
+
+
+    return (
+        <div aria-label="Timetables List table">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-3 px-1">
+                <div className="text-primary font-semibold">{divisionName}</div>
+                <Button
+                    variant="outlinePrimary"
+                    className="px-4 py-1 rounded hover:bg-primary/10 transition-colors"
+                    onClick={() => openForm()}
+                >
+                    Create Timetable
+                </Button>
+            </div>
+
+            {/* Table */}
+            <Table className="h-[calc(100vh-270px)] border shadow-lg rounded-lg custom-scrollbar">
+                <TableHeader className="sticky top-0 bg-card">
+                    <TableRow className="hover:bg-opacity-100 bg-table-header-bg [&_th]:text-table-header-color [&>th]:px-[32px] text-size-tabs">
+                        <TableHead className="text-center px-6 py-3">Timetable</TableHead>
+                        <TableHead className="text-center px-6 py-3">From</TableHead>
+                        <TableHead className="text-center px-6 py-3">To</TableHead>
+                        <TableHead className="text-center px-6 py-3">Status</TableHead>
+                        <TableHead className="text-center px-6 py-3">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                    {timetablesData.length === 0 ? (
+                        <TableRow>
+                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                                {messages.division.timetableNotFound}
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        timetablesData.map((timetable, index) => (
+                            <TableRow key={index} className="hover:bg-muted/30 text-muted-foreground">
+                                <TableCell className="text-center">{timetable.TimetableName}</TableCell>
+                                <TableCell className="text-center">{formatDate(timetable.From)}</TableCell>
+                                <TableCell className="text-center">{formatDate(timetable.To)}</TableCell>
+
+                                <TableCell className="text-center text-muted-foreground">
+                                    <TooltipHoverMessage position="bottom">
+                                        <span
+                                            className={cn(
+                                                "inline-block rounded-full border text-xs font-medium px-3 py-0.5",
+                                                getTimetableStatusColor(timetable.Status)
+                                            )}
+                                        >
+                                            {timetable?.Status}
+                                        </span>
+                                    </TooltipHoverMessage>
+                                </TableCell>
+                                <TableCell className="flex justify-center gap-2 py-2">
+                                    <CircleIconWrapper toolTipText="Calender">
+                                        <CalendarIcon size={16} className="text-primary cursor-pointer" />
+                                    </CircleIconWrapper>
+
+                                    <CircleIconWrapper
+                                        toolTipText="Edit"
+                                        onClick={() => openForm(timetable)}
+                                    >
+                                        <Edit2Icon size={16} className="text-primary cursor-pointer" />
+                                    </CircleIconWrapper>
+
+                                    <CircleIconWrapper toolTipText="Download">
+                                        <Download size={16} className="text-primary cursor-pointer" />
+                                    </CircleIconWrapper>
+
+                                    <CircleIconWrapper
+                                        toolTipText="Delete"
+                                        destructive
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            openDeleteDialog(timetable._id);
+                                        }}
+                                    >
+                                        <Trash2Icon size={16} className="text-destructive cursor-pointer" />
+                                    </CircleIconWrapper>
+
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    )}
+                </TableBody>
+            </Table>
+
+            {/* Delete Dialog */}
+            <DeleteDialog
+                open={deleteOpen}
+                setOpen={setDeleteOpen}
+                onDelete={handleDelete}
+                loading={loading}
+                message={messages.division.timetableDeleteConfirmation}
+            />
+
+            {/* Timetable Form  */}
+            <TimetableForm
+                open={formOpen}
+                mode={editData ? "update" : "create"}
+                initialData={editData ?? undefined}
+                onClose={() => setFormOpen(false)}
+               onSuccess={() => refetch()} 
+            />
+        </div>
+    );
+}
