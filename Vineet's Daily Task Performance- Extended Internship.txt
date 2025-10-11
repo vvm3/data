@@ -467,6 +467,63 @@ Today's Update:
 - scheme page auto credit calculation - done
 - mibm pdf updates issue - solved - done
 
+30-09-2025
+Today's Update:
+- scheme page form validation - done
+- code optimized - done
+
+01-10-2025
+Today's Update:
+*Git issue occurred - resolved
+- raise PR - done
+- seratek website work with raunak
+
+
+03-10-2025
+Today's Update:
+- seratek website work with raunak
+- starting on division timetable
+
+
+06-10-2025
+Today's Update:
+- PR comments resolved 
+- added more validations
+
+
+07-10-2025
+Today's Update:
+- Division Timetable ui - done
+- api integration - done
+
+
+08-10-2025
+Today's Update:
+- Division Timetable (edit issue also backend issue) - done
+- working on bug for masked mobile and email popup - done
+- backend down
+
+
+09-10-2025
+Today's Update:
+- Division Timetable edit issue solved - done
+- comments resolved for infrastructure PR - done
+
+10-10-2025
+Today's Update:
+- PR comments resolved of Sharvari course - done
+- MIBM website updates of admission - done
+
+
+11-10-2025
+Today's Update:
+- Seratek website - done
+- Solved and helped to resolve issues for demo 
+
+
+
+
+
 
 
 auth - commented
